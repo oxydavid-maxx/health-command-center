@@ -20,6 +20,8 @@
       "canonical_owner": "garmin-claude-analysis",
       "trigger_owner": "health-command-center",
       "local_root": "C:/dev/apps/garmin-claude-analysis",
+      "runtime_root": "C:/dev/runtime/garmin-health-command-center",
+      "python_runtime": "C:/dev/apps/garmin-claude-analysis/.venv/Scripts/python.exe",
       "repository": "https://github.com/oxydavid-maxx/garmin-claude-analysis"
     }
   },
