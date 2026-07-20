@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "product": "health-command-center",
+  "canonical": {
+    "local_root": "C:/dev/skills/health-command-center",
+    "repository": "https://github.com/oxydavid-maxx/health-command-center",
+    "entrypoint": "skills/health-command-center/SKILL.md"
+  },
+  "installation": {
+    "mode": "junction-to-canonical-entrypoint",
+    "targets": [
+      "C:/Users/User/.codex/skills/health-command-center",
+      "C:/Users/User/.claude/skills/health-command-center",
+      "C:/Users/User/.agents/skills/health-command-center"
+    ]
+  },
+  "dependencies": {
+    "garmin": {
+      "role": "runtime-data-producer",
+      "canonical_owner": "garmin-claude-analysis",
+      "trigger_owner": "health-command-center",
+      "local_root": "C:/dev/apps/garmin-claude-analysis",
+      "repository": "https://github.com/oxydavid-maxx/garmin-claude-analysis"
+    }
+  },
+  "vault": {
+    "allowed_content": [
+      "domain-law",
+      "workflow-binding",
+      "allowed-paths",
+      "skill-catalog"
+    ],
+    "skill_bytes_allowed": false
+  }
+}

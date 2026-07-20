@@ -1,0 +1,26 @@
+{
+  "name": "health-command-center",
+  "version": "0.1.0",
+  "description": "Decision workflow for Health trends, training, recovery, and safe menu adjustments.",
+  "author": {
+    "name": "Kuang-Yu Ku"
+  },
+  "homepage": "https://github.com/oxydavid-maxx/health-command-center",
+  "repository": "https://github.com/oxydavid-maxx/health-command-center",
+  "license": "MIT",
+  "keywords": ["health", "garmin", "inbody", "training", "obsidian"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Health Command Center",
+    "shortDescription": "Review Health trends and safe adjustments",
+    "longDescription": "Combine Garmin, InBody, strength, recovery, fixed-menu, and weekly-plan evidence into a compact Health decision workflow.",
+    "developerName": "Kuang-Yu Ku",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/oxydavid-maxx/health-command-center",
+    "defaultPrompt": [
+      "Review my current Health status and recommend the next safe adjustment."
+    ]
+  }
+}
+

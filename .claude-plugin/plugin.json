@@ -1,0 +1,9 @@
+{
+  "name": "health-command-center",
+  "version": "0.1.0",
+  "description": "Decision workflow for Health trends, training, recovery, and safe menu adjustments.",
+  "author": {
+    "name": "Kuang-Yu Ku"
+  }
+}
+

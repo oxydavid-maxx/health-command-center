@@ -1,0 +1,5 @@
+interface:
+  display_name: "Health Command Center"
+  short_description: "Review Health trends and govern safe adjustments"
+  default_prompt: "Use $health-command-center to review my current Health status and next adjustment."
+
