@@ -5,7 +5,7 @@ const { evaluateRecovery } = require('../scripts/evaluate-recovery.cjs');
 
 test('current poor sleep and low Garmin evidence recommends rest without inventing a score', () => {
   const result = evaluateRecovery({
-    meta: { export_date: '2026-07-21T07:46:00+08:00' },
+    meta: { normalized_date: '2026-07-21T07:46:00+08:00' },
     sleep: [{ date: '2026-07-21', total_hr: 5.5 }],
     hrv: [{ date: '2026-07-21', last_night_avg: 26, status: 'LOW', baseline_low: 30, baseline_upper: 44 }],
     training_readiness: [{ date: '2026-07-21', score: 28, level: 'LOW' }],
@@ -17,6 +17,8 @@ test('current poor sleep and low Garmin evidence recommends rest without inventi
   assert.equal(result.state, 'recover');
   assert.equal(result.presentation.action, '今天：休息');
   assert.match(result.presentation.evidence, /睡眠 5\.5 小時/);
+  assert.equal(result.acquired_at, '2026-07-21T07:46:00+08:00');
+  assert.match(result.presentation.freshness, /Garmin 7\/21/);
   assert.equal('score' in result, false);
 });
 

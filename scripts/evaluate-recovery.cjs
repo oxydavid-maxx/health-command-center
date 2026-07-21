@@ -33,7 +33,13 @@ function evaluateRecovery(data, options = {}) {
   const readiness = signal(readinessRow, readinessRow?.score, evaluationDate);
   const battery = signal(batteryRow, batteryRow?.at_wake, evaluationDate);
   const rhr = signal(rhrRow, rhrRow?.value ?? rhrRow?.bpm ?? rhrRow?.resting_hr, evaluationDate);
-  const acquiredAt = String(data.meta?.export_date || data.meta?.generated_at || '');
+  const acquiredAt = String(
+    data.meta?.export_date
+    || data.meta?.normalized_date
+    || data.meta?.db_read_date
+    || data.meta?.generated_at
+    || ''
+  );
   const digest = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
   const userDecision = options.userDecision && String(options.userDecision.date || '').slice(0, 10) === evaluationDate
