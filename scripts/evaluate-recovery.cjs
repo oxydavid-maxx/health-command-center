@@ -42,9 +42,14 @@ function evaluateRecovery(data, options = {}) {
   );
   const digest = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
-  const userDecision = options.userDecision && String(options.userDecision.date || '').slice(0, 10) === evaluationDate
-    ? options.userDecision
-    : null;
+  const userDecisions = (Array.isArray(options.userDecisions)
+    ? options.userDecisions
+    : options.userDecision ? [options.userDecision] : [])
+    .filter((row) => row && row.date && row.decision)
+    .sort((left, right) => String(left.date).localeCompare(String(right.date)));
+  const userDecision = userDecisions
+    .filter((row) => String(row.date || '').slice(0, 10) === evaluationDate)
+    .at(-1) || null;
   if (userDecision) {
     const reason = String(userDecision.reason || '今天需要恢復').replace(/[。.!！]+$/, '');
     return {
@@ -52,6 +57,7 @@ function evaluateRecovery(data, options = {}) {
       source_digest: digest, lifecycle: sleep.validity === 'current' ? 'fresh' : 'partial',
       state: 'recover', confidence: 'high', reason_codes: ['user-recovery-decision'],
       plan_effect: 'user-adjusted-recovery', signals: { sleep, hrv, readiness, body_battery: battery, resting_heart_rate: rhr },
+      user_decisions: userDecisions,
       user_decision: userDecision,
       presentation: {
         action: '今天：休息',
@@ -67,6 +73,7 @@ function evaluateRecovery(data, options = {}) {
       source_digest: digest, lifecycle: 'pending', state: 'unknown', confidence: 'none',
       reason_codes: ['current-sleep-missing'], plan_effect: 'none',
       signals: { sleep, hrv, readiness, body_battery: battery, resting_heart_rate: rhr },
+      user_decisions: userDecisions,
       presentation: {
         action: '今天：等資料',
         evidence: '今天的睡眠尚未同步，不做自動恢復判讀。',
@@ -103,6 +110,7 @@ function evaluateRecovery(data, options = {}) {
     confidence: readiness.validity === 'current' && hrv.validity === 'current' ? 'high' : readiness.validity === 'current' || hrv.validity === 'current' ? 'medium' : 'low',
     reason_codes: reasons, plan_effect: state === 'good' ? 'keep-plan' : state === 'watch' ? 'conservative-execution' : 'propose-recovery',
     signals: { sleep, hrv, readiness, body_battery: battery, resting_heart_rate: rhr },
+    user_decisions: userDecisions,
     presentation: {
       action,
       evidence: `${evidenceParts.join('；')}。`,
@@ -121,12 +129,11 @@ function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (!args.input || !args.output || !args.date) throw new Error('required: --input --output --date');
   const data = JSON.parse(fs.readFileSync(args.input, 'utf8'));
-  let userDecision = null;
+  let userDecisions = [];
   if (args['user-decisions'] && fs.existsSync(args['user-decisions'])) {
-    const rows = fs.readFileSync(args['user-decisions'], 'utf8').split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
-    userDecision = rows.filter((row) => String(row.date || '').slice(0, 10) === args.date).at(-1) || null;
+    userDecisions = fs.readFileSync(args['user-decisions'], 'utf8').split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
   }
-  const result = evaluateRecovery(data, { evaluationDate: args.date, userDecision });
+  const result = evaluateRecovery(data, { evaluationDate: args.date, userDecisions });
   fs.mkdirSync(path.dirname(args.output), { recursive: true });
   const temporary = `${args.output}.tmp-${process.pid}`;
   fs.writeFileSync(temporary, `${JSON.stringify(result, null, 2)}\n`, 'utf8');

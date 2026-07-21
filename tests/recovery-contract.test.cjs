@@ -72,3 +72,20 @@ test('current sleep alone cannot produce a confident green recommendation', () =
   assert.equal(result.presentation.action, '今天：保守做');
   assert.deepEqual(result.reason_codes.sort(), ['hrv-missing', 'readiness-missing']);
 });
+
+test('the contract preserves prior user recovery decisions for later weekly reconciliation', () => {
+  const history = [{
+    date: '2026-07-21', decision: 'rest', reason: '昨晚沒睡好，所以今天不跑',
+    planned_session: '輕鬆跑 5 km', source: 'user',
+  }];
+  const result = evaluateRecovery({
+    meta: { normalized_date: '2026-07-22T07:46:00+08:00' },
+    sleep: [{ date: '2026-07-22', total_hr: 7.2 }],
+    hrv: [{ date: '2026-07-22', last_night_avg: 36, status: 'BALANCED' }],
+    training_readiness: [{ date: '2026-07-22', score: 78, level: 'HIGH' }],
+  }, { evaluationDate: '2026-07-22', userDecisions: history });
+
+  assert.deepEqual(result.user_decisions, history);
+  assert.equal(result.user_decision, undefined);
+  assert.equal(result.state, 'good');
+});
