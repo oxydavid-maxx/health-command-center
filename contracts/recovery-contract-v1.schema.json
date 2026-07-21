@@ -19,6 +19,18 @@
     "reason_codes": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "plan_effect": { "type": "string" },
     "signals": { "type": "object" },
+    "user_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "decision", "source"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "decision": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
     "presentation": {
       "type": "object",
       "required": ["action", "evidence", "freshness"],

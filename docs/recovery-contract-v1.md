@@ -29,6 +29,8 @@ remain available for auditing.
   a conflicting Garmin suggestion for that day.
 - A user recovery decision is `user-adjusted-recovery`, not `missing` or
   `failed`, and never creates an automatic make-up session.
+- The contract carries the decision history in `user_decisions`; a decision is
+  not discarded when the next evaluation date begins.
 - Daily recovery never edits the fixed menu or weekly plan. Changes remain
   digest-bound proposals requiring explicit approval.
 
