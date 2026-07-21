@@ -1,0 +1,14 @@
+{
+  "accepted_spec": null,
+  "active_change": {
+    "blob_oid": "ba7a5208be9011afa40264de6ee65d504b45c295",
+    "path": "docs/spec.md",
+    "sha256": "42f1a3154544deabe02e2cc5e707ab3843615a159c7d7dae7264fde050733ca6",
+    "size_bytes": 1013,
+    "source_commit": "b94fe5fab27731665cd59380acf6f5a64174749f"
+  },
+  "baseline_mode": "reconstruct_required",
+  "owner_repo": ".",
+  "product_id": "health-command-center",
+  "schema_version": 1
+}

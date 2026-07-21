@@ -80,3 +80,16 @@ provenance and freshness, plan version, required/optional/OR semantics, unknown
 states, the combined assessment, approval state, and atomic publication. The
 Today card must show compact 3-month trends for resting heart rate, body weight,
 skeletal muscle, body-fat mass, body-fat percentage, and weekly running volume.
+
+## Daily recovery presentation
+
+Use `docs/recovery-contract-v1.md` and
+`contracts/recovery-contract-v1.schema.json` for recovery evaluation. Today may
+show only one action sentence, one evidence sentence and one quiet freshness
+line. Do not expose a traffic-light legend, custom recovery score, confidence
+meter or recovery-tile row.
+
+A volunteered user recovery decision outranks Garmin for that day. Record it as
+`user-adjusted-recovery`; do not call it a missed workout and do not schedule a
+make-up session automatically. Missing current-date sleep remains `pending` and
+must not be made current by RHR or activity data.
