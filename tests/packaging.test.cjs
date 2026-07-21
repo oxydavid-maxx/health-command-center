@@ -40,8 +40,16 @@ test('registration manifest keeps the Vault external and Garmin independent', ()
 test('Health owns the daily trigger while Garmin keeps acquisition implementation', () => {
   const refresh = read('scripts/daily-refresh.ps1');
   assert.match(refresh, /scripts\.garmin_refresh/);
+  assert.match(refresh, /evaluate-recovery\.cjs/);
   assert.match(refresh, /src\.build_athlete_json/);
   assert.match(refresh, /src\.vault_sync/);
+  const order = [
+    refresh.indexOf('scripts.garmin_refresh'),
+    refresh.indexOf('& $node $recoveryEvaluator'),
+    refresh.indexOf('src.build_athlete_json'),
+    refresh.indexOf('src.vault_sync'),
+  ];
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
   assert.doesNotMatch(refresh, /fetch_garmin\s*\(/);
 });
 
@@ -78,4 +86,14 @@ test('repo owns a safe registration script and migration proof tool', () => {
   assert.match(register, /New-Item\s+-ItemType\s+Junction/i);
   assert.match(register, /health-command-center/);
   assert.ok(fs.existsSync(path.join(ROOT, 'scripts/migration-proof.ps1')));
+});
+
+test('Recovery Contract keeps policy in Health and presentation deliberately plain', () => {
+  const schema = json('contracts/recovery-contract-v1.schema.json');
+  const policy = read('docs/recovery-contract-v1.md');
+  assert.equal(schema.properties.contract_version.const, '1.0');
+  assert.deepEqual(schema.properties.presentation.required, ['action', 'evidence', 'freshness']);
+  assert.match(policy, /user-adjusted-recovery/);
+  assert.match(policy, /traffic-light legend/);
+  assert.match(policy, /never creates an automatic make-up session/);
 });
