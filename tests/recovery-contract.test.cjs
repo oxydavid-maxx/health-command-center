@@ -37,6 +37,19 @@ test('stale sleep keeps the action unknown even when other Garmin rows are curre
   assert.match(result.presentation.freshness, /睡眠只到 7\/20/);
 });
 
+test('freshness reports the latest Garmin source row instead of the acquisition date', () => {
+  const result = evaluateRecovery({
+    meta: { export_date: '2026-07-25T07:45:00+08:00' },
+    sleep: [{ date: '2026-07-23', total_hr: 7.2 }],
+    resting_hr: [{ date: '2026-07-24', value: 54 }],
+  }, { evaluationDate: '2026-07-25' });
+
+  assert.equal(
+    result.presentation.freshness,
+    'Garmin 7/24 已同步；睡眠只到 7/23。',
+  );
+});
+
 test('a volunteered user recovery decision overrides Garmin and is not a missed workout', () => {
   const result = evaluateRecovery({
     meta: { export_date: '2026-07-21T07:46:00+08:00' },

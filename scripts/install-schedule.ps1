@@ -10,14 +10,17 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $refresh = Join-Path $repoRoot 'scripts\daily-refresh.ps1'
-$pwsh = (Get-Command pwsh.exe -ErrorAction Stop).Source
+$stablePwsh = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\pwsh.exe'
+if (-not (Test-Path -LiteralPath $stablePwsh -PathType Leaf)) {
+    throw "Stable PowerShell app execution alias missing: $stablePwsh"
+}
 
 $legacy = Get-ScheduledTask -TaskName $LegacyTaskName -ErrorAction SilentlyContinue
 if ($legacy) {
     Disable-ScheduledTask -TaskName $LegacyTaskName | Out-Null
 }
 
-$action = New-ScheduledTaskAction -Execute $pwsh -Argument (
+$action = New-ScheduledTaskAction -Execute $stablePwsh -Argument (
     '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -GarminRoot "{1}" -PythonPath "{2}"' -f `
         $refresh, $GarminRoot, $PythonPath
 )
@@ -33,7 +36,7 @@ Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger `
     task = $TaskName
     schedule = $At
     action = $refresh
-    executable = $pwsh
+    executable = $stablePwsh
     garmin_root = $GarminRoot
     python_runtime = $PythonPath
 } | ConvertTo-Json -Depth 3

@@ -12,6 +12,12 @@ const md = (date) => {
   const [, month, day] = String(date || '').slice(0, 10).split('-').map(Number);
   return month && day ? `${month}/${day}` : '—';
 };
+const latestGarminSourceDate = (data) => Object.values(data || {})
+  .filter(Array.isArray)
+  .flatMap((rows) => rows.map((row) => String(row?.date || row?.start || '').slice(0, 10)))
+  .filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value))
+  .sort()
+  .at(-1) || null;
 function signal(row, value, evaluationDate) {
   if (!row) return { source_date: null, value: null, validity: 'missing' };
   return {
@@ -40,6 +46,8 @@ function evaluateRecovery(data, options = {}) {
     || data.meta?.generated_at
     || ''
   );
+  const latestGarminDate = latestGarminSourceDate(data);
+  const garminFreshness = latestGarminDate ? `Garmin ${md(latestGarminDate)} 已同步` : 'Garmin 尚無資料';
   const digest = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
   const userDecisions = (Array.isArray(options.userDecisions)
@@ -62,7 +70,7 @@ function evaluateRecovery(data, options = {}) {
       presentation: {
         action: '今天：休息',
         evidence: `你回報${reason}。`,
-        freshness: `Garmin ${md(acquiredAt)} 已同步；睡眠${sleep.source_date ? `到 ${md(sleep.source_date)}` : '尚未收到'}。`,
+        freshness: `${garminFreshness}；睡眠${sleep.source_date ? `到 ${md(sleep.source_date)}` : '尚未收到'}。`,
       },
     };
   }
@@ -77,7 +85,7 @@ function evaluateRecovery(data, options = {}) {
       presentation: {
         action: '今天：等資料',
         evidence: '今天的睡眠尚未同步，不做自動恢復判讀。',
-        freshness: `Garmin ${md(acquiredAt)} 已同步；睡眠${sleep.source_date ? `只到 ${md(sleep.source_date)}` : '尚未收到'}。`,
+        freshness: `${garminFreshness}；睡眠${sleep.source_date ? `只到 ${md(sleep.source_date)}` : '尚未收到'}。`,
       },
     };
   }
@@ -114,7 +122,7 @@ function evaluateRecovery(data, options = {}) {
     presentation: {
       action,
       evidence: `${evidenceParts.join('；')}。`,
-      freshness: `Garmin ${md(acquiredAt)} 已同步；睡眠到 ${md(sleep.source_date)}。`,
+      freshness: `${garminFreshness}；睡眠到 ${md(sleep.source_date)}。`,
     },
   };
 }
