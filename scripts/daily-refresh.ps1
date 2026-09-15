@@ -25,6 +25,12 @@ try {
     $env:INBODY_HISTORY_PATH = Join-Path $garminRootResolved 'data\inbody_history.json'
     $env:GARMIN_PYTHON = $python
     $env:HEALTH_RECOVERY_PATH = Join-Path $garminRootResolved 'runtime\recovery.json'
+    # vault_sync defaults the manual InBody submission to <Vault>/Health/inbody-input.json,
+    # but vault-structure.yaml does not register that slot, so the file cannot legally
+    # exist and the manual-confirmation lane was unreachable: a failed photo read stayed
+    # parse-error forever even after 光佑 supplied the values. Keep the submission in the
+    # producer runtime, which every scheduled pass already reads.
+    $env:INBODY_INPUT_PATH = Join-Path $garminRootResolved 'runtime\inbody-input.json'
     $normalized = Join-Path $garminRootResolved 'health_normalized.json'
     $userDecisions = Join-Path $garminRootResolved 'runtime\user-recovery-decisions.jsonl'
     Push-Location $garminRootResolved
