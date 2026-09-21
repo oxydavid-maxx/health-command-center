@@ -58,7 +58,7 @@ test('scheduler binds the merged Garmin runtime without using the dirty developm
   const installer = read('scripts/install-schedule.ps1');
   const registration = json('manifests/registration.json');
 
-  assert.match(refresh, /GarminRoot\s*=\s*'C:\\dev\\runtime\\garmin-health-command-center'/);
+  assert.match(refresh, /GarminRoot\s*=\s*'C:\\dev\\apps\\garmin-health-runtime'/);
   assert.match(refresh, /PythonPath\s*=\s*'C:\\dev\\apps\\garmin-claude-analysis\\\.venv\\Scripts\\python\.exe'/);
   assert.doesNotMatch(refresh, /Join-Path\s+\$garminRootResolved\s+'\.venv\\Scripts\\python\.exe'/);
   assert.match(installer, /-GarminRoot/);
@@ -67,7 +67,7 @@ test('scheduler binds the merged Garmin runtime without using the dirty developm
   assert.match(installer, /Microsoft\\WindowsApps\\pwsh\.exe/);
   assert.doesNotMatch(installer, /Get-Command\s+pwsh\.exe/);
   assert.match(installer, /New-ScheduledTaskAction\s+-Execute\s+\$stablePwsh/);
-  assert.equal(registration.dependencies.garmin.runtime_root, 'C:/dev/runtime/garmin-health-command-center');
+  assert.equal(registration.dependencies.garmin.runtime_root, 'C:/dev/apps/garmin-health-runtime');
   assert.equal(registration.dependencies.garmin.python_runtime, 'C:/dev/apps/garmin-claude-analysis/.venv/Scripts/python.exe');
 });
 

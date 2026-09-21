@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$GarminRoot = 'C:\dev\runtime\garmin-health-command-center',
+    [string]$GarminRoot = 'C:\dev\apps\garmin-health-runtime',
     [string]$PythonPath = 'C:\dev\apps\garmin-claude-analysis\.venv\Scripts\python.exe',
     [string]$VaultRoot = 'C:\dev\Obsidian'
 )
@@ -10,6 +10,12 @@ $garminRootResolved = (Resolve-Path -LiteralPath $GarminRoot).Path
 $python = (Resolve-Path -LiteralPath $PythonPath -ErrorAction Stop).Path
 if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     throw "Garmin Python runtime missing: $python"
+}
+# Refuse an obsolete producer before it can report success to the scheduler.
+$publisher = Join-Path $garminRootResolved 'src\vault_sync.py'
+$publisherSource = Get-Content -LiteralPath $publisher -Raw
+if ($publisherSource -notmatch 'from \.health_command_center import' -or $publisherSource -match 'out = VAULT / "_generated"') {
+    throw 'Health producer does not implement the canonical status publication contract.'
 }
 $node = (Get-Command node.exe -ErrorAction Stop).Source
 $recoveryEvaluator = Join-Path $PSScriptRoot 'evaluate-recovery.cjs'
@@ -21,6 +27,7 @@ if (-not $mutex.WaitOne(0)) {
 }
 
 try {
+    $refreshStarted = [DateTime]::UtcNow
     $env:HEALTH_VAULT_DIR = Join-Path $VaultRoot 'Health'
     $env:INBODY_HISTORY_PATH = Join-Path $garminRootResolved 'data\inbody_history.json'
     $env:GARMIN_PYTHON = $python
@@ -54,6 +61,11 @@ try {
                 throw "$module failed with exit code $LASTEXITCODE"
             }
         }
+        $publishedStatus = Get-Item -LiteralPath (Join-Path $env:HEALTH_VAULT_DIR 'status.md') -ErrorAction Stop
+        if ($publishedStatus.LastWriteTimeUtc -lt $refreshStarted) {
+            throw 'Health refresh did not update the canonical Health/status.md.'
+        }
+        Write-Output 'Verified canonical Health/status.md publication.'
     }
     finally {
         Pop-Location

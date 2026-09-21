@@ -3,7 +3,7 @@ param(
     [string]$At = '07:45',
     [string]$LegacyTaskName = 'Garmin Health Fetch',
     [string]$TaskName = 'Health Command Center Daily Refresh',
-    [string]$GarminRoot = 'C:\dev\runtime\garmin-health-command-center',
+    [string]$GarminRoot = 'C:\dev\apps\garmin-health-runtime',
     [string]$PythonPath = 'C:\dev\apps\garmin-claude-analysis\.venv\Scripts\python.exe'
 )
 
