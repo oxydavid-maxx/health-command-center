@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const os = require('node:os');
+const { spawnSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -98,4 +100,79 @@ test('Recovery Contract keeps policy in Health and presentation deliberately pla
   assert.match(policy, /user-adjusted-recovery/);
   assert.match(policy, /traffic-light legend/);
   assert.match(policy, /never creates an automatic make-up session/);
+});
+
+test('daily refresh finds the Health folder through the Vault registry, not a literal folder name', () => {
+  const refresh = read('scripts/daily-refresh.ps1');
+  assert.doesNotMatch(refresh, /Join-Path\s+\$VaultRoot\s+'Health'/);
+  assert.doesNotMatch(refresh, /Health[\/]status\.md'/);
+  assert.match(refresh, /src\.health_vault/);
+  assert.match(refresh, /Join-Path \$garminRootResolved 'src[\\/]health_vault\.py'/);
+  assert.match(refresh, /\$statusPath/);
+});
+
+const PYTHON = 'C:/dev/apps/garmin-claude-analysis/.venv/Scripts/python.exe';
+const RUNTIME = 'C:/dev/apps/garmin-health-runtime';
+const REGISTRY_REL = ['00_指揮部', '80_系統', '10_治理', 'skill-registry.yaml'];
+
+function scratchVault(folder, entry) {
+  const vault = fs.mkdtempSync(path.join(os.tmpdir(), 'hcc-vault-'));
+  const registry = path.join(vault, ...REGISTRY_REL);
+  fs.mkdirSync(path.dirname(registry), { recursive: true });
+  fs.writeFileSync(registry, [
+    'workflow_bindings:',
+    '  command-center: {skill: obsidian-life-os}',
+    '  Gateway: {skill: skill-study}',
+    entry,
+    '  出遊: {skill: travelwork}',
+    '',
+    'knowledge_packages:',
+    '  owner: Library',
+    '',
+  ].join('\r\n'), 'utf8');
+  if (folder) fs.mkdirSync(path.join(vault, folder));
+  return vault;
+}
+
+function resolveOnly(vault) {
+  return spawnSync('pwsh', [
+    '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File',
+    path.join(ROOT, 'scripts', 'daily-refresh.ps1'),
+    '-ResolveOnly', '-VaultRoot', vault, '-GarminRoot', RUNTIME, '-PythonPath', PYTHON,
+  ], { encoding: 'utf8' });
+}
+
+const runtimeReady = () => fs.existsSync(PYTHON) && fs.existsSync(path.join(RUNTIME, 'src', 'health_vault.py'));
+const hasPwsh = () => spawnSync('pwsh', ['-NoProfile', '-Command', '$PSVersionTable.PSVersion.Major'], { encoding: 'utf8' }).status === 0;
+
+for (const [label, folder, entry] of [
+  ['today (Health)', 'Health', '  Health: {skill: health-command-center, current_projection: Health/status.md}'],
+  ['after the rename (numbered folder with space and CJK)', '02_休閒 Health', '  "02_休閒 Health": {skill: health-command-center, current_projection: "02_休閒 Health/status.md"}'],
+]) {
+  test(`daily refresh resolves the Health folder ${label}`, (t) => {
+    if (!runtimeReady() || !hasPwsh()) return t.skip('Garmin runtime or pwsh not available');
+    const vault = scratchVault(folder, entry);
+    try {
+      const done = resolveOnly(vault);
+      assert.equal(done.status, 0, done.stderr || done.stdout);
+      const resolved = JSON.parse(done.stdout.trim().split(/\r?\n/).pop());
+      assert.equal(resolved.health_dir, path.join(vault, folder));
+      assert.equal(resolved.status_path, path.join(vault, folder, 'status.md'));
+    } finally {
+      fs.rmSync(vault, { recursive: true, force: true });
+    }
+  });
+}
+
+test('daily refresh fails loudly when the registry has no health-command-center binding', (t) => {
+  if (!runtimeReady() || !hasPwsh()) return t.skip('Garmin runtime or pwsh not available');
+  const vault = scratchVault('Health', '  Health: {skill: something-else}');
+  try {
+    const done = resolveOnly(vault);
+    assert.notEqual(done.status, 0);
+    assert.match(`${done.stderr}${done.stdout}`, /health-command-center/);
+    assert.match(`${done.stderr}${done.stdout}`, /Vault registry/);
+  } finally {
+    fs.rmSync(vault, { recursive: true, force: true });
+  }
 });
