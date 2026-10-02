@@ -15,8 +15,8 @@ When working in the Obsidian Vault, read these current authorities before
 drawing a conclusion:
 
 1. `00_指揮部/80_系統/10_治理/vault-structure.yaml`
-2. `.agents/domain-laws/Health.md`
-3. `Health/status.md`
+2. `00_指揮部/80_系統/10_治理/domain-laws/Health.md`
+3. `02_休閒 Health/status.md`
 4. the current dated weekly training plan
 5. the active body-fat Effort and its fixed menu
 
@@ -44,10 +44,10 @@ Garmin normally cannot prove strength sets, load, RIR, pain, or completion.
 |---|---|
 | Garmin raw/normalized series, reconciliation rows, publication generations | producer runtime outside the Vault |
 | Health knowledge, active goals, fixed menu, weekly plan, personal findings | Vault semantic paths |
-| Current compact projection | `Health/status.md` |
+| Current compact projection | `02_休閒 Health/status.md` |
 | Today presentation | `00_指揮部/00_今日.md` as a consumer only |
 
-`Health/70_Meals/` remains meal records only. Do not create `_generated` or a
+`02_休閒 Health/70_Meals/` remains meal records only. Do not create `_generated` or a
 second Health intake lane.
 
 ## Make the weekly decision
@@ -75,7 +75,7 @@ unexpired, single-use approval.
 
 ## Publish and verify
 
-Publish only a compact validated projection to `Health/status.md`. Confirm
+Publish only a compact validated projection to `02_休閒 Health/status.md`. Confirm
 provenance and freshness, plan version, required/optional/OR semantics, unknown
 states, the combined assessment, approval state, and atomic publication. The
 Today card must show compact 3-month trends for resting heart rate, body weight,
