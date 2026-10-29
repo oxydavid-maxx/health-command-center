@@ -68,7 +68,12 @@ test('scheduler binds the merged Garmin runtime without using the dirty developm
   assert.match(installer, /\$env:LOCALAPPDATA/);
   assert.match(installer, /Microsoft\\WindowsApps\\pwsh\.exe/);
   assert.doesNotMatch(installer, /Get-Command\s+pwsh\.exe/);
-  assert.match(installer, /New-ScheduledTaskAction\s+-Execute\s+\$stablePwsh/);
+  // The task runs a hidden wscript launcher: starting pwsh.exe directly showed a console every run.
+  const launcher = read('scripts/daily-refresh.vbs');
+  assert.match(installer, /New-ScheduledTaskAction\s+-Execute\s+\$wscript/);
+  assert.match(installer, /scripts\\daily-refresh\.vbs/);
+  assert.match(launcher, /%LOCALAPPDATA%"\) & "\\Microsoft\\WindowsApps\\pwsh\.exe/);
+  assert.match(launcher, /WScript\.Quit shell\.Run\(cmd, 0, True\)/);
   assert.equal(registration.dependencies.garmin.runtime_root, 'C:/dev/apps/garmin-health-runtime');
   assert.equal(registration.dependencies.garmin.python_runtime, 'C:/dev/apps/garmin-claude-analysis/.venv/Scripts/python.exe');
 });

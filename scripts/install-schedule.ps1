@@ -20,9 +20,12 @@ if ($legacy) {
     Disable-ScheduledTask -TaskName $LegacyTaskName | Out-Null
 }
 
-$action = New-ScheduledTaskAction -Execute $stablePwsh -Argument (
-    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -GarminRoot "{1}" -PythonPath "{2}"' -f `
-        $refresh, $GarminRoot, $PythonPath
+# Through a hidden wscript launcher: a task that starts pwsh.exe directly shows a console
+# window every run. The .vbs runs the same pwsh command hidden and returns its exit code.
+$launcher = Join-Path $repoRoot 'scripts\daily-refresh.vbs'
+$wscript = Join-Path $env:WINDIR 'System32\wscript.exe'
+$action = New-ScheduledTaskAction -Execute $wscript -Argument (
+    '"{0}" -GarminRoot "{1}" -PythonPath "{2}"' -f $launcher, $GarminRoot, $PythonPath
 )
 $trigger = New-ScheduledTaskTrigger -Daily -At $At
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew
@@ -36,7 +39,9 @@ Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger `
     task = $TaskName
     schedule = $At
     action = $refresh
-    executable = $stablePwsh
+    executable = $wscript
+    launcher = $launcher
+    pwsh = $stablePwsh
     garmin_root = $GarminRoot
     python_runtime = $PythonPath
 } | ConvertTo-Json -Depth 3
